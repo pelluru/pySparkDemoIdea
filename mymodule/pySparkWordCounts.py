@@ -15,32 +15,12 @@ if __name__ == "__main__":
 
     book.show(10,False)
 
-    lines = book.select(split(col("value")," ").alias("line"))
-
-    lines.show(10,False)
-
-    words  = lines.select(explode(col("line")).alias("word"))
-
-    words.show(10,False)
-
-    lower_words = words.select(lower(col("word")).alias("lower_word"))
-
-    lower_words.show(10,False)
-
     """
-    remove functuations
+    create temp table in Spark, so that you can spark SQL
     """
+    book.createOrReplaceTempView("book_table")
 
-    pure_words = lower_words.select(regexp_extract(col("lower_word"),"[a-z]*",0).alias("pure_word"))
+    lines_split = sparkSession.sql("select split(value,' ') as line from book_table")
 
-    pure_words_non_empty = pure_words.where(col("pure_word") != "").alias("pure_word_non_empty")
+    lines_split.show(10,False)
 
-    pure_words_non_empty.show(10,False)
-
-    wordCounts = pure_words_non_empty.groupBy(col("pure_word")).count()
-
-    wordCounts.show(10,False)
-
-    sortedWords = wordCounts.orderBy(col("count").desc())
-
-    sortedWords.show(10,False)
